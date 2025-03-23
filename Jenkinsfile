@@ -1,3 +1,4 @@
+@Library('Shared')_
 pipeline {
     agent {label "vinod"}
 
@@ -12,7 +13,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'This is building the code'
-                sh 'docker build -t notes-app:latest .'
+                docker_build("notes-app", "latest")
             }
         }
         stage("Push to DockerHub"){
