@@ -13,7 +13,9 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'This is building the code'
+                script{
                 docker_build("notes-app", "latest")
+                }
             }
         }
         stage("Push to DockerHub"){
