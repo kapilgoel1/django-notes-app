@@ -1,29 +1,46 @@
-@Library('Shared')_
-pipeline{
-    agent { label 'dev-server'}
-    
-    stages{
-        stage("Code clone"){
-            steps{
-                sh "whoami"
-            clone("https://github.com/LondheShubham153/django-notes-app.git","main")
+pipeline {
+    agent {label "vinod"}
+
+    stages {
+        stage('Code') {
+            steps {
+                echo 'This is cloning the code'
+                git url: 'https://github.com/kapilgoel1/django-notes-app', branch: 'main'
+                echo 'Code Clone is sucessful!'
             }
         }
-        stage("Code Build"){
-            steps{
-            dockerbuild("notes-app","latest")
+        stage('Build') {
+            steps {
+                echo 'This is building the code'
+                sh 'docker build -t notes-app:latest .'
             }
         }
         stage("Push to DockerHub"){
             steps{
-                dockerpush("dockerHubCreds","notes-app","latest")
+                withCredentials(
+                    [usernamePassword(
+                        credentialsId:"dockerHubCred",
+                        passwordVariable:"dockerHubPass", 
+                        usernameVariable:"dockerHubUser"
+                        )
+                    ]
+                ){
+                sh "docker image tag notes-app:latest ${env.dockerHubUser}/notes-app:latest"
+                sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPass}"
+                sh "docker push ${env.dockerHubUser}/notes-app:latest"
+                }
             }
         }
-        stage("Deploy"){
-            steps{
-                deploy()
+        stage('Test') {
+            steps {
+                echo 'This is testing the code'
             }
         }
-        
+        stage('Deploy') {
+            steps {
+                echo 'This is deploying the code'
+                sh 'docker run -d -p 8000:8000 notes-app:latest'
+            }
+        }
     }
 }
